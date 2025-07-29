@@ -14,16 +14,356 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      dependencias: {
+        Row: {
+          codigo: string
+          created_at: string
+          id: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          id?: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documentos: {
+        Row: {
+          archivo_nombre: string | null
+          archivo_url: string | null
+          codigo_unico: string
+          created_at: string
+          created_by: string
+          dependencia_id: string
+          estado: Database["public"]["Enums"]["document_status"]
+          fecha_creacion_documento: string | null
+          fecha_ingreso: string
+          id: string
+          nombre: string
+          observaciones: string | null
+          palabras_clave: string[] | null
+          serie_id: string
+          soporte: Database["public"]["Enums"]["document_support"]
+          subserie_id: string
+          tipo_documental: string
+          ubicacion_fisica: string | null
+          updated_at: string
+        }
+        Insert: {
+          archivo_nombre?: string | null
+          archivo_url?: string | null
+          codigo_unico: string
+          created_at?: string
+          created_by: string
+          dependencia_id: string
+          estado?: Database["public"]["Enums"]["document_status"]
+          fecha_creacion_documento?: string | null
+          fecha_ingreso?: string
+          id?: string
+          nombre: string
+          observaciones?: string | null
+          palabras_clave?: string[] | null
+          serie_id: string
+          soporte?: Database["public"]["Enums"]["document_support"]
+          subserie_id: string
+          tipo_documental: string
+          ubicacion_fisica?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archivo_nombre?: string | null
+          archivo_url?: string | null
+          codigo_unico?: string
+          created_at?: string
+          created_by?: string
+          dependencia_id?: string
+          estado?: Database["public"]["Enums"]["document_status"]
+          fecha_creacion_documento?: string | null
+          fecha_ingreso?: string
+          id?: string
+          nombre?: string
+          observaciones?: string | null
+          palabras_clave?: string[] | null
+          serie_id?: string
+          soporte?: Database["public"]["Enums"]["document_support"]
+          subserie_id?: string
+          tipo_documental?: string
+          ubicacion_fisica?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_dependencia_id_fkey"
+            columns: ["dependencia_id"]
+            isOneToOne: false
+            referencedRelation: "dependencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_serie_id_fkey"
+            columns: ["serie_id"]
+            isOneToOne: false
+            referencedRelation: "series_documentales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_subserie_id_fkey"
+            columns: ["subserie_id"]
+            isOneToOne: false
+            referencedRelation: "subseries_documentales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eliminaciones: {
+        Row: {
+          acta_eliminacion_url: string | null
+          aprobado_por: string | null
+          created_at: string
+          documento_id: string
+          estado: Database["public"]["Enums"]["elimination_status"]
+          fecha_eliminacion_real: string | null
+          fecha_programada_eliminacion: string
+          id: string
+          observaciones: string | null
+          responsable_id: string
+          updated_at: string
+        }
+        Insert: {
+          acta_eliminacion_url?: string | null
+          aprobado_por?: string | null
+          created_at?: string
+          documento_id: string
+          estado?: Database["public"]["Enums"]["elimination_status"]
+          fecha_eliminacion_real?: string | null
+          fecha_programada_eliminacion: string
+          id?: string
+          observaciones?: string | null
+          responsable_id: string
+          updated_at?: string
+        }
+        Update: {
+          acta_eliminacion_url?: string | null
+          aprobado_por?: string | null
+          created_at?: string
+          documento_id?: string
+          estado?: Database["public"]["Enums"]["elimination_status"]
+          fecha_eliminacion_real?: string | null
+          fecha_programada_eliminacion?: string
+          id?: string
+          observaciones?: string | null
+          responsable_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eliminaciones_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prestamos: {
+        Row: {
+          aprobado_por: string | null
+          created_at: string
+          documento_id: string
+          estado: Database["public"]["Enums"]["loan_status"]
+          fecha_devolucion_programada: string | null
+          fecha_devolucion_real: string | null
+          fecha_entrega: string | null
+          fecha_solicitud: string
+          id: string
+          motivo_prestamo: string
+          observaciones: string | null
+          updated_at: string
+          usuario_solicitante_id: string
+        }
+        Insert: {
+          aprobado_por?: string | null
+          created_at?: string
+          documento_id: string
+          estado?: Database["public"]["Enums"]["loan_status"]
+          fecha_devolucion_programada?: string | null
+          fecha_devolucion_real?: string | null
+          fecha_entrega?: string | null
+          fecha_solicitud?: string
+          id?: string
+          motivo_prestamo: string
+          observaciones?: string | null
+          updated_at?: string
+          usuario_solicitante_id: string
+        }
+        Update: {
+          aprobado_por?: string | null
+          created_at?: string
+          documento_id?: string
+          estado?: Database["public"]["Enums"]["loan_status"]
+          fecha_devolucion_programada?: string | null
+          fecha_devolucion_real?: string | null
+          fecha_entrega?: string | null
+          fecha_solicitud?: string
+          id?: string
+          motivo_prestamo?: string
+          observaciones?: string | null
+          updated_at?: string
+          usuario_solicitante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestamos_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          activo: boolean
+          created_at: string
+          dependencia_id: string | null
+          email: string
+          id: string
+          nombre_completo: string
+          rol: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          dependencia_id?: string | null
+          email: string
+          id: string
+          nombre_completo: string
+          rol?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          dependencia_id?: string | null
+          email?: string
+          id?: string
+          nombre_completo?: string
+          rol?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_dependencia_id_fkey"
+            columns: ["dependencia_id"]
+            isOneToOne: false
+            referencedRelation: "dependencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      series_documentales: {
+        Row: {
+          codigo: string
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          tiempo_retencion_anos: number | null
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          tiempo_retencion_anos?: number | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          tiempo_retencion_anos?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subseries_documentales: {
+        Row: {
+          codigo: string
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          serie_id: string
+          tiempo_retencion_anos: number | null
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          serie_id: string
+          tiempo_retencion_anos?: number | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          serie_id?: string
+          tiempo_retencion_anos?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subseries_documentales_serie_id_fkey"
+            columns: ["serie_id"]
+            isOneToOne: false
+            referencedRelation: "series_documentales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      document_status: "Activo" | "Transferido" | "Eliminado"
+      document_support: "Papel" | "Digital"
+      elimination_status: "Pendiente" | "En_revision" | "Eliminado"
+      loan_status: "Pendiente" | "Aprobado" | "Devuelto" | "Rechazado"
+      user_role: "Administrador" | "Usuario_solicitante" | "Consultor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +490,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      document_status: ["Activo", "Transferido", "Eliminado"],
+      document_support: ["Papel", "Digital"],
+      elimination_status: ["Pendiente", "En_revision", "Eliminado"],
+      loan_status: ["Pendiente", "Aprobado", "Devuelto", "Rechazado"],
+      user_role: ["Administrador", "Usuario_solicitante", "Consultor"],
+    },
   },
 } as const
