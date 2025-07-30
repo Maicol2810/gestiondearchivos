@@ -1,20 +1,346 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
+import DocumentForm from "@/components/DocumentForm";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  Download,
+  FileText,
+  Filter,
+  MoreHorizontal
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Documentos() {
+  const [documentos, setDocumentos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingDocument, setEditingDocument] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchDocumentos();
+  }, []);
+
+  const fetchDocumentos = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('documentos')
+        .select(`
+          *,
+          dependencias(nombre),
+          series_documentales(nombre),
+          subseries_documentales(nombre),
+          profiles(nombre_completo)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setDocumentos(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los documentos",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!documentToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from('documentos')
+        .delete()
+        .eq('id', documentToDelete.id);
+
+      if (error) throw error;
+      
+      toast({ title: "Documento eliminado correctamente" });
+      fetchDocumentos();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDocumentToDelete(null);
+    }
+  };
+
+  const filteredDocumentos = documentos.filter((doc: any) =>
+    doc.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doc.codigo_unico.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doc.tipo_documental.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getEstadoBadge = (estado: string) => {
+    const variants = {
+      Activo: "default",
+      Inactivo: "secondary",
+      Eliminado: "destructive"
+    };
+    return <Badge variant={variants[estado as keyof typeof variants] as any}>{estado}</Badge>;
+  };
+
+  const getSoporteBadge = (soporte: string) => {
+    const variants = {
+      Papel: "outline",
+      Digital: "default",
+      Microfilm: "secondary",
+      Otro: "outline"
+    };
+    return <Badge variant={variants[soporte as keyof typeof variants] as any}>{soporte}</Badge>;
+  };
+
+  if (showForm) {
+    return (
+      <Layout>
+        <div className="animate-fade-in">
+          <DocumentForm
+            document={editingDocument}
+            onSuccess={() => {
+              setShowForm(false);
+              setEditingDocument(null);
+              fetchDocumentos();
+            }}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingDocument(null);
+            }}
+          />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Documentos</h2>
-          <p className="text-muted-foreground">Gestión del inventario documental</p>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-foreground">Documentos</h2>
+            <p className="text-muted-foreground">Gestión del inventario documental</p>
+          </div>
+          <Button
+            onClick={() => setShowForm(true)}
+            className="hover-lift animate-pulse-glow"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Documento
+          </Button>
         </div>
-        
-        <div className="bg-card p-8 rounded-lg border border-border text-center">
-          <h3 className="text-xl font-semibold mb-4">Módulo en Desarrollo</h3>
-          <p className="text-muted-foreground">
-            Esta funcionalidad está siendo implementada. Pronto podrás gestionar todo tu inventario documental.
-          </p>
+
+        {/* Filtros y búsqueda */}
+        <Card className="glass-effect">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar documentos..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+              <Button variant="outline" className="hover-lift">
+                <Filter className="h-4 w-4 mr-2" />
+                Filtros Avanzados
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Estadísticas rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="hover-lift glass-effect">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="text-2xl font-bold">{documentos.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Documentos</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="hover-lift glass-effect">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-8 w-8 text-green-500" />
+                <div>
+                  <p className="text-2xl font-bold">{documentos.filter((d: any) => d.estado === 'Activo').length}</p>
+                  <p className="text-sm text-muted-foreground">Activos</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="hover-lift glass-effect">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="text-2xl font-bold">{documentos.filter((d: any) => d.soporte === 'Digital').length}</p>
+                  <p className="text-sm text-muted-foreground">Digitales</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="hover-lift glass-effect">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-8 w-8 text-orange-500" />
+                <div>
+                  <p className="text-2xl font-bold">{documentos.filter((d: any) => d.soporte === 'Papel').length}</p>
+                  <p className="text-sm text-muted-foreground">Físicos</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Tabla de documentos */}
+        <Card className="glass-effect">
+          <CardHeader>
+            <CardTitle>Lista de Documentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Nombre</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Dependencia</TableHead>
+                      <TableHead>Serie</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Soporte</TableHead>
+                      <TableHead>Creado por</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDocumentos.map((documento: any) => (
+                      <TableRow key={documento.id} className="hover:bg-accent/50 transition-colors">
+                        <TableCell className="font-medium">{documento.codigo_unico}</TableCell>
+                        <TableCell>{documento.nombre}</TableCell>
+                        <TableCell>{documento.tipo_documental}</TableCell>
+                        <TableCell>{documento.dependencias?.nombre}</TableCell>
+                        <TableCell>{documento.series_documentales?.nombre}</TableCell>
+                        <TableCell>{getEstadoBadge(documento.estado)}</TableCell>
+                        <TableCell>{getSoporteBadge(documento.soporte)}</TableCell>
+                        <TableCell>{documento.profiles?.nombre_completo}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="hover-lift">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingDocument(documento);
+                                  setShowForm(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              {documento.archivo_url && (
+                                <DropdownMenuItem
+                                  onClick={() => window.open(documento.archivo_url, '_blank')}
+                                >
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Descargar
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setDocumentToDelete(documento);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredDocumentos.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No se encontraron documentos
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Diálogo de confirmación de eliminación */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. El documento será eliminado permanentemente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

@@ -86,6 +86,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const menuItems = [
+    { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
     { icon: FileText, label: "Documentos", path: "/documentos" },
     { icon: BookOpen, label: "Préstamos", path: "/prestamos" },
     { icon: Trash2, label: "Eliminaciones", path: "/eliminaciones" },
@@ -133,9 +134,9 @@ export default function Layout({ children }: LayoutProps) {
         {/* Sidebar */}
         <aside className={`
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0 transition-transform duration-200 ease-in-out
+          lg:translate-x-0 transition-all duration-300 ease-in-out
           fixed lg:static inset-y-0 left-0 z-50
-          w-64 bg-card border-r border-border
+          w-64 glass-effect border-r border-border
         `}>
           <nav className="p-4 space-y-2 mt-4">
             {filteredMenuItems.map((item) => (
