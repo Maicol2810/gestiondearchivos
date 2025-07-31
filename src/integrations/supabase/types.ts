@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      consultas: {
+        Row: {
+          asunto: string
+          created_at: string
+          descripcion: string
+          estado: string
+          fecha_respuesta: string | null
+          id: string
+          nivel_urgencia: string
+          respondido_por: string | null
+          respuesta: string | null
+          tipo_consulta: string
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          asunto: string
+          created_at?: string
+          descripcion: string
+          estado?: string
+          fecha_respuesta?: string | null
+          id?: string
+          nivel_urgencia?: string
+          respondido_por?: string | null
+          respuesta?: string | null
+          tipo_consulta: string
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          asunto?: string
+          created_at?: string
+          descripcion?: string
+          estado?: string
+          fecha_respuesta?: string | null
+          id?: string
+          nivel_urgencia?: string
+          respondido_por?: string | null
+          respuesta?: string | null
+          tipo_consulta?: string
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       dependencias: {
         Row: {
           codigo: string
@@ -349,6 +394,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_first_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -356,6 +405,10 @@ export type Database = {
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      promote_to_admin: {
+        Args: { user_email: string }
+        Returns: undefined
       }
     }
     Enums: {

@@ -33,16 +33,10 @@ export default function ConsultaForm({ onSuccess, onCancel }: ConsultaFormProps)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
-      const { error } = await supabase
-        .from('consultas')
-        .insert([{
-          ...data,
-          usuario_id: user.id
-        }]);
-
-      if (error) throw error;
+      // Por ahora simulamos la inserción hasta que la migración se procese
+      console.log("Datos de consulta:", { ...data, usuario_id: user.id });
       
-      toast({ title: "Consulta registrada correctamente" });
+      toast({ title: "Consulta registrada correctamente (simulado)" });
       onSuccess();
     } catch (error: any) {
       toast({
