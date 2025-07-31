@@ -43,6 +43,17 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   });
 
   useEffect(() => {
+    if (document) {
+      setValue("dependencia_id", document.dependencia_id);
+      setValue("serie_id", document.serie_id);
+      setValue("subserie_id", document.subserie_id);
+      setValue("soporte", document.soporte);
+      setValue("estado", document.estado);
+      setSelectedSerie(document.serie_id);
+    }
+  }, [document, setValue]);
+
+  useEffect(() => {
     fetchDependencias();
     fetchSeries();
   }, []);
@@ -189,7 +200,10 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
             <div>
               <Label htmlFor="dependencia_id">Dependencia</Label>
-              <Select onValueChange={(value) => setValue("dependencia_id", value)}>
+              <Select 
+                value={watch("dependencia_id")} 
+                onValueChange={(value) => setValue("dependencia_id", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar dependencia" />
                 </SelectTrigger>
@@ -203,11 +217,14 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
             <div>
               <Label htmlFor="serie_id">Serie Documental</Label>
-              <Select onValueChange={(value) => {
-                setValue("serie_id", value);
-                setSelectedSerie(value);
-                setValue("subserie_id", "");
-              }}>
+              <Select 
+                value={watch("serie_id")} 
+                onValueChange={(value) => {
+                  setValue("serie_id", value);
+                  setSelectedSerie(value);
+                  setValue("subserie_id", "");
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar serie" />
                 </SelectTrigger>
@@ -221,7 +238,10 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
             <div>
               <Label htmlFor="subserie_id">Subserie Documental</Label>
-              <Select onValueChange={(value) => setValue("subserie_id", value)}>
+              <Select 
+                value={watch("subserie_id")} 
+                onValueChange={(value) => setValue("subserie_id", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar subserie" />
                 </SelectTrigger>
@@ -254,7 +274,10 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
             <div>
               <Label htmlFor="soporte">Soporte</Label>
-              <Select onValueChange={(value) => setValue("soporte", value)}>
+              <Select 
+                value={watch("soporte")} 
+                onValueChange={(value) => setValue("soporte", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar soporte" />
                 </SelectTrigger>
@@ -269,7 +292,10 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
             <div>
               <Label htmlFor="estado">Estado</Label>
-              <Select onValueChange={(value) => setValue("estado", value)}>
+              <Select 
+                value={watch("estado")} 
+                onValueChange={(value) => setValue("estado", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar estado" />
                 </SelectTrigger>
