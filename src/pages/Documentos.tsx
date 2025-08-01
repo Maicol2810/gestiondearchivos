@@ -59,7 +59,7 @@ export default function Documentos() {
           dependencias(nombre),
           series_documentales(nombre),
           subseries_documentales(nombre),
-          profiles(nombre_completo)
+          created_by_profile:profiles!created_by(nombre_completo)
         `)
         .order('created_at', { ascending: false });
 
@@ -271,7 +271,7 @@ export default function Documentos() {
                         <TableCell>{documento.series_documentales?.nombre}</TableCell>
                         <TableCell>{getEstadoBadge(documento.estado)}</TableCell>
                         <TableCell>{getSoporteBadge(documento.soporte)}</TableCell>
-                        <TableCell>{documento.profiles?.nombre_completo}</TableCell>
+                        <TableCell>{documento.created_by_profile?.nombre_completo || 'N/A'}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

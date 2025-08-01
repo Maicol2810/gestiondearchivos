@@ -169,6 +169,13 @@ export type Database = {
             referencedRelation: "subseries_documentales"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_documentos_created_by_profiles"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       eliminaciones: {
