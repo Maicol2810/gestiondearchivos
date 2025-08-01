@@ -23,6 +23,7 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   const [subseries, setSubseries] = useState([]);
   const [selectedSerie, setSelectedSerie] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const { toast } = useToast();
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
@@ -43,6 +44,7 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   });
 
   useEffect(() => {
+    fetchUserProfile();
     if (document) {
       setValue("dependencia_id", document.dependencia_id);
       setValue("serie_id", document.serie_id);
@@ -64,11 +66,27 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
     }
   }, [selectedSerie]);
 
+  const fetchUserProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*, dependencias(nombre)')
+        .eq('id', user.id)
+        .single();
+      setUserProfile(data);
+    }
+  };
+
   const fetchDependencias = async () => {
-    const { data, error } = await supabase
-      .from('dependencias')
-      .select('*')
-      .order('nombre');
+    let query = supabase.from('dependencias').select('*').order('nombre');
+    
+    // Si el usuario no es administrador, solo mostrar su dependencia
+    if (userProfile && userProfile.rol !== 'Administrador' && userProfile.dependencia_id) {
+      query = query.eq('id', userProfile.dependencia_id);
+    }
+    
+    const { data, error } = await query;
     
     if (!error) setDependencias(data || []);
   };
@@ -301,7 +319,7 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  <SelectItem value="Transferido">Transferido</SelectItem>
                   <SelectItem value="Eliminado">Eliminado</SelectItem>
                 </SelectContent>
               </Select>
@@ -335,7 +353,7 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
                 id="archivo"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                 className="hidden"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.bmp,.tiff"
               />
               <label
                 htmlFor="archivo"
@@ -361,6 +379,9 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
                     <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
                     <p className="mt-2 text-sm text-muted-foreground">
                       Haz clic para subir un archivo
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Formatos: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, etc.
                     </p>
                   </div>
                 )}

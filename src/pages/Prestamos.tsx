@@ -430,6 +430,11 @@ export default function Prestamos() {
             )}
           </CardContent>
         </Card>
+        
+        {/* Footer */}
+        <div className="text-center py-4 text-xs text-muted-foreground border-t border-border mt-8">
+          Creador: Joan Torres © 2025
+        </div>
       </div>
     </Layout>
   );

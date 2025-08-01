@@ -159,6 +159,11 @@ export default function Usuarios() {
             </Dialog>
           )}
         </div>
+        
+        {/* Footer */}
+        <div className="text-center py-4 text-xs text-muted-foreground border-t border-border mt-8">
+          Creador: Joan Torres © 2025
+        </div>
 
         {/* Search */}
         <Card className="glass-effect">
@@ -224,7 +229,7 @@ export default function Usuarios() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Solicitantes</p>
                   <p className="text-2xl font-bold">
-                    {usuarios.filter((u: any) => u.rol === 'Usuario_solicitante').length}
+                    {usuarios.filter((u: any) => u.rol === 'Usuario').length}
                   </p>
                 </div>
               </div>

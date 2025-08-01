@@ -60,10 +60,9 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
         if (error) throw error;
         toast({ title: "Usuario actualizado correctamente" });
       } else {
-        // Para crear usuarios, necesitaríamos auth.admin
-        toast({ 
-          title: "Información", 
-          description: "Los usuarios deben registrarse por sí mismos",
+        toast({
+          title: "Información",
+          description: "La creación de usuarios debe hacerse a través del panel de administración de Supabase",
           variant: "default"
         });
       }
@@ -126,7 +125,7 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
                   <SelectValue placeholder="Seleccionar rol" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Usuario_solicitante">Usuario Solicitante</SelectItem>
+                  <SelectItem value="Usuario">Usuario</SelectItem>
                   <SelectItem value="Administrador">Administrador</SelectItem>
                 </SelectContent>
               </Select>

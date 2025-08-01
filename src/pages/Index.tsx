@@ -141,7 +141,7 @@ const Index = () => {
       <footer className="bg-card border-t border-border py-8">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground">
-            © 2024 Sistema de Inventario Documental. Todos los derechos reservados.
+            Creador: Joan Torres © 2025
           </p>
         </div>
       </footer>

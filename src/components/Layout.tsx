@@ -154,6 +154,13 @@ export default function Layout({ children }: LayoutProps) {
               </Button>
             ))}
           </nav>
+          
+          {/* Footer */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="text-xs text-muted-foreground text-center border-t border-border pt-4">
+              Creador: Joan Torres © 2025
+            </div>
+          </div>
         </aside>
 
         {/* Overlay for mobile */}

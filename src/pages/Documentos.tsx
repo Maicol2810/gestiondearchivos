@@ -44,6 +44,8 @@ export default function Documentos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -77,6 +79,20 @@ export default function Documentos() {
     }
   };
 
+  const handleViewDocument = (url: string) => {
+    setViewerUrl(url);
+    setViewerOpen(true);
+  };
+
+  const handleDownloadDocument = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'documento';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   const handleDelete = async () => {
     if (!documentToDelete) return;
     
@@ -111,7 +127,7 @@ export default function Documentos() {
   const getEstadoBadge = (estado: string) => {
     const variants = {
       Activo: "default",
-      Inactivo: "secondary",
+      Transferido: "secondary",
       Eliminado: "destructive"
     };
     return <Badge variant={variants[estado as keyof typeof variants] as any}>{estado}</Badge>;
@@ -121,8 +137,7 @@ export default function Documentos() {
     const variants = {
       Papel: "outline",
       Digital: "default",
-      Microfilm: "secondary",
-      Otro: "outline"
+      Microfilm: "secondary"
     };
     return <Badge variant={variants[soporte as keyof typeof variants] as any}>{soporte}</Badge>;
   };
@@ -276,15 +291,26 @@ export default function Documentos() {
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             {documento.archivo_url && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => window.open(documento.archivo_url, '_blank')}
-                                className="hover-lift text-primary hover:text-primary/80"
-                                title="Ver/Descargar documento"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewDocument(documento.archivo_url)}
+                                  className="hover-lift text-primary hover:text-primary/80"
+                                  title="Ver documento"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadDocument(documento.archivo_url, documento.archivo_nombre)}
+                                  className="hover-lift text-green-600 hover:text-green-700"
+                                  title="Descargar documento"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </>
                             )}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -304,7 +330,7 @@ export default function Documentos() {
                                 </DropdownMenuItem>
                                 {documento.archivo_url && (
                                   <DropdownMenuItem
-                                    onClick={() => window.open(documento.archivo_url, '_blank')}
+                                    onClick={() => handleDownloadDocument(documento.archivo_url, documento.archivo_nombre)}
                                   >
                                     <Download className="h-4 w-4 mr-2" />
                                     Descargar
@@ -338,6 +364,38 @@ export default function Documentos() {
           </CardContent>
         </Card>
 
+        {/* Visor de documentos */}
+        {viewerOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg w-full h-full max-w-6xl max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="text-lg font-semibold">Visor de Documento</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewerOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 p-4">
+                {viewerUrl.toLowerCase().includes('.pdf') ? (
+                  <iframe
+                    src={viewerUrl}
+                    className="w-full h-full border-0"
+                    title="Documento PDF"
+                  />
+                ) : (
+                  <img
+                    src={viewerUrl}
+                    alt="Documento"
+                    className="max-w-full max-h-full object-contain mx-auto"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         {/* Diálogo de confirmación de eliminación */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>

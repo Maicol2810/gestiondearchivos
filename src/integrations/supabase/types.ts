@@ -423,7 +423,7 @@ export type Database = {
       document_support: "Papel" | "Digital"
       elimination_status: "Pendiente" | "En_revision" | "Eliminado"
       loan_status: "Pendiente" | "Aprobado" | "Devuelto" | "Rechazado"
-      user_role: "Administrador" | "Usuario_solicitante" | "Consultor"
+      user_role: "Administrador" | "Usuario"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -555,7 +555,7 @@ export const Constants = {
       document_support: ["Papel", "Digital"],
       elimination_status: ["Pendiente", "En_revision", "Eliminado"],
       loan_status: ["Pendiente", "Aprobado", "Devuelto", "Rechazado"],
-      user_role: ["Administrador", "Usuario_solicitante", "Consultor"],
+      user_role: ["Administrador", "Usuario"],
     },
   },
 } as const
