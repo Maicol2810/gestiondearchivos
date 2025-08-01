@@ -125,3 +125,229 @@ export default function Reportes() {
       setLoading(false);
     }
   };
+
+  const exportReport = () => {
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `reporte_${selectedReport}_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const renderReportContent = () => {
+    switch (selectedReport) {
+      case 'documentos':
+        const docData = reportData.documentos;
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total</p>
+                    <p className="text-2xl font-bold">{docData.total}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <Archive className="h-8 w-8 text-green-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Activos</p>
+                    <p className="text-2xl font-bold">{docData.activos}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-8 w-8 text-blue-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Digitales</p>
+                    <p className="text-2xl font-bold">{docData.digitales}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <PieChart className="h-8 w-8 text-yellow-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Físicos</p>
+                    <p className="text-2xl font-bold">{docData.fisicos}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      
+      case 'prestamos':
+        const prestData = reportData.prestamos;
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Préstamos</p>
+                    <p className="text-2xl font-bold">{prestData.total}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-8 w-8 text-yellow-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pendientes</p>
+                    <p className="text-2xl font-bold">{prestData.pendientes}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-8 w-8 text-green-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Aprobados</p>
+                    <p className="text-2xl font-bold">{prestData.aprobados}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <Archive className="h-8 w-8 text-blue-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Devueltos</p>
+                    <p className="text-2xl font-bold">{prestData.devueltos}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 'usuarios':
+        const userData = reportData.usuarios;
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Usuarios</p>
+                    <p className="text-2xl font-bold">{userData.total}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-8 w-8 text-green-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Activos</p>
+                    <p className="text-2xl font-bold">{userData.activos}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover-lift glass-effect">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-8 w-8 text-yellow-500" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Administradores</p>
+                    <p className="text-2xl font-bold">{userData.administradores}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      default:
+        return <div>Selecciona un tipo de reporte</div>;
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-foreground">Reportes</h2>
+            <p className="text-muted-foreground">Estadísticas y reportes del sistema</p>
+          </div>
+          <Button onClick={exportReport} className="hover-lift">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar Reporte
+          </Button>
+        </div>
+
+        {/* Report Type Selector */}
+        <Card className="glass-effect">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              <Select value={selectedReport} onValueChange={setSelectedReport}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Seleccionar tipo de reporte" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="documentos">Documentos</SelectItem>
+                  <SelectItem value="prestamos">Préstamos</SelectItem>
+                  <SelectItem value="usuarios">Usuarios</SelectItem>
+                  <SelectItem value="consultas">Consultas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Report Content */}
+        <Card className="glass-effect">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5" />
+              <span>Reporte de {selectedReport.charAt(0).toUpperCase() + selectedReport.slice(1)}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              renderReportContent()
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
+  );
+}

@@ -19,20 +19,32 @@ export default function Consultas() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulamos datos por ahora
-    setConsultas([
-      {
-        id: "1",
-        tipo_consulta: "Solicitud de Información",
-        asunto: "Consulta sobre documentos históricos",
-        nivel_urgencia: "Media",
-        estado: "Pendiente",
-        created_at: new Date().toISOString(),
-        profiles: { nombre_completo: "Usuario Demo" }
-      }
-    ]);
-    setLoading(false);
+    fetchConsultas();
   }, []);
+
+  const fetchConsultas = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('consultas')
+        .select(`
+          *,
+          profiles(nombre_completo)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setConsultas(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getEstadoBadge = (estado: string) => {
     const variants = { Pendiente: "outline", Respondida: "default", Cerrada: "secondary" };
@@ -58,7 +70,13 @@ export default function Consultas() {
               <DialogHeader>
                 <DialogTitle>Nueva Consulta</DialogTitle>
               </DialogHeader>
-              <ConsultaForm onSuccess={() => setShowForm(false)} onCancel={() => setShowForm(false)} />
+              <ConsultaForm 
+                onSuccess={() => {
+                  setShowForm(false);
+                  fetchConsultas();
+                }} 
+                onCancel={() => setShowForm(false)} 
+              />
             </DialogContent>
           </Dialog>
         </div>
