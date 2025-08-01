@@ -12,11 +12,12 @@ import {
   Plus, 
   Search, 
   Edit, 
-  Trash2, 
   Download,
+  Trash2,
+  MoreHorizontal,
   FileText,
   Filter,
-  MoreHorizontal
+  Eye
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -273,42 +274,55 @@ export default function Documentos() {
                         <TableCell>{getSoporteBadge(documento.soporte)}</TableCell>
                         <TableCell>{documento.created_by_profile?.nombre_completo || 'N/A'}</TableCell>
                         <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="hover-lift">
-                                <MoreHorizontal className="h-4 w-4" />
+                          <div className="flex items-center justify-end gap-1">
+                            {documento.archivo_url && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(documento.archivo_url, '_blank')}
+                                className="hover-lift text-primary hover:text-primary/80"
+                                title="Ver/Descargar documento"
+                              >
+                                <Eye className="h-4 w-4" />
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditingDocument(documento);
-                                  setShowForm(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              {documento.archivo_url && (
+                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="hover-lift">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
                                 <DropdownMenuItem
-                                  onClick={() => window.open(documento.archivo_url, '_blank')}
+                                  onClick={() => {
+                                    setEditingDocument(documento);
+                                    setShowForm(true);
+                                  }}
                                 >
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Descargar
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar
                                 </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setDocumentToDelete(documento);
-                                  setDeleteDialogOpen(true);
-                                }}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Eliminar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                {documento.archivo_url && (
+                                  <DropdownMenuItem
+                                    onClick={() => window.open(documento.archivo_url, '_blank')}
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Descargar
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setDocumentToDelete(documento);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
