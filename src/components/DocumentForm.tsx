@@ -56,9 +56,16 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   }, [document, setValue]);
 
   useEffect(() => {
+    fetchUserProfile();
     fetchDependencias();
     fetchSeries();
   }, []);
+
+  useEffect(() => {
+    if (userProfile) {
+      fetchDependencias();
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     if (selectedSerie) {
@@ -75,10 +82,17 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         .eq('id', user.id)
         .single();
       setUserProfile(data);
+      
+      // Si el usuario no es administrador, auto-seleccionar su dependencia
+      if (data && data.rol !== 'Administrador' && data.dependencia_id && !document) {
+        setValue("dependencia_id", data.dependencia_id);
+      }
     }
   };
 
   const fetchDependencias = async () => {
+    if (!userProfile) return;
+    
     const { data, error } = await supabase
       .from('dependencias')
       .select('*')
@@ -86,7 +100,7 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
     
     if (!error) {
       // Si el usuario no es administrador, solo mostrar su dependencia
-      if (userProfile && userProfile.rol !== 'Administrador' && userProfile.dependencia_id) {
+      if (userProfile.rol !== 'Administrador' && userProfile.dependencia_id) {
         const userDependencias = data?.filter(dep => dep.id === userProfile.dependencia_id) || [];
         setDependencias(userDependencias);
       } else {
