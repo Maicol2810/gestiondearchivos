@@ -17,7 +17,8 @@ import {
   MoreHorizontal,
   FileText,
   Filter,
-  Eye
+  Eye,
+  X
 } from "lucide-react";
 import {
   DropdownMenu,
