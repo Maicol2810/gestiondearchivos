@@ -79,16 +79,20 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   };
 
   const fetchDependencias = async () => {
-    let query = supabase.from('dependencias').select('*').order('nombre');
+    const { data, error } = await supabase
+      .from('dependencias')
+      .select('*')
+      .order('nombre');
     
-    // Si el usuario no es administrador, solo mostrar su dependencia
-    if (userProfile && userProfile.rol !== 'Administrador' && userProfile.dependencia_id) {
-      query = query.eq('id', userProfile.dependencia_id);
+    if (!error) {
+      // Si el usuario no es administrador, solo mostrar su dependencia
+      if (userProfile && userProfile.rol !== 'Administrador' && userProfile.dependencia_id) {
+        const userDependencias = data?.filter(dep => dep.id === userProfile.dependencia_id) || [];
+        setDependencias(userDependencias);
+      } else {
+        setDependencias(data || []);
+      }
     }
-    
-    const { data, error } = await query;
-    
-    if (!error) setDependencias(data || []);
   };
 
   const fetchSeries = async () => {

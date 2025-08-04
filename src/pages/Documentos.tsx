@@ -80,18 +80,48 @@ export default function Documentos() {
   };
 
   const handleViewDocument = (url: string) => {
-    setViewerUrl(url);
-    setViewerOpen(true);
+    if (url) {
+      setViewerUrl(url);
+      setViewerOpen(true);
+    } else {
+      toast({
+        title: "Error",
+        description: "No hay archivo disponible para visualizar",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDownloadDocument = (url: string, filename: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename || 'documento';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (url) {
+      try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || 'documento';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Descarga iniciada",
+          description: "El archivo se está descargando"
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo descargar el archivo",
+          variant: "destructive"
+        });
+      }
+    } else {
+      toast({
+        title: "Error",
+        description: "No hay archivo disponible para descargar",
+        variant: "destructive"
+      });
+    }
   };
   const handleDelete = async () => {
     if (!documentToDelete) return;

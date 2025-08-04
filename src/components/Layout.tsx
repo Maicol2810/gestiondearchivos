@@ -12,7 +12,8 @@ import {
   BarChart3, 
   LogOut,
   Menu,
-  X
+  X,
+  Settings
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -93,6 +94,7 @@ export default function Layout({ children }: LayoutProps) {
     { icon: Search, label: "Consultas", path: "/consultas" },
     { icon: Users, label: "Usuarios", path: "/usuarios", adminOnly: true },
     { icon: BarChart3, label: "Reportes", path: "/reportes" },
+    { icon: Settings, label: "Configuración", path: "/configuracion", adminOnly: true },
   ];
 
   const filteredMenuItems = menuItems.filter(item => 
