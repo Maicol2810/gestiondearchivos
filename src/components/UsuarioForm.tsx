@@ -23,9 +23,9 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
     email: usuario?.email || "",
     rol: usuario?.rol || "Usuario",
     dependencia_id: usuario?.dependencia_id || "",
-    activo: usuario?.activo ?? true
+    activo: usuario?.activo ?? true,
+    password: ""
   });
-  const [generatedPassword, setGeneratedPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
@@ -42,23 +42,6 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
     if (!error) setDependencias(data || []);
   };
 
-  const generatePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setGeneratedPassword(password);
-    return password;
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copiado",
-      description: "Contraseña copiada al portapapeles"
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,12 +64,20 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
         toast({ title: "Usuario actualizado correctamente" });
       } else {
         // Crear nuevo usuario
-        const password = generatePassword();
+        if (!formData.password) {
+          toast({
+            title: "Error",
+            description: "La contraseña es requerida",
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
         
         // Crear usuario en Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: formData.email,
-          password: password,
+          password: formData.password,
           email_confirm: true,
           user_metadata: {
             nombre_completo: formData.nombre_completo
@@ -110,7 +101,7 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
 
         toast({ 
           title: "Usuario creado correctamente",
-          description: `Contraseña generada: ${password}`
+          description: "El usuario puede iniciar sesión con la contraseña proporcionada"
         });
       }
 
@@ -195,6 +186,35 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
               </Select>
             </div>
 
+            {!usuario && (
+              <div>
+                <Label htmlFor="password">Contraseña</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange("password", e.target.value)}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 pr-10"
+                    required={!usuario}
+                    placeholder="Ingrese una contraseña segura"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Mínimo 8 caracteres. El usuario deberá cambiarla en su primer acceso.
+                </p>
+              </div>
+            )}
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="activo"
@@ -204,39 +224,6 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
               <Label htmlFor="activo">Usuario activo</Label>
             </div>
           </div>
-
-          {!usuario && generatedPassword && (
-            <div className="p-4 bg-muted rounded-lg">
-              <Label>Contraseña generada:</Label>
-              <div className="flex items-center gap-2 mt-2">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={generatedPassword}
-                  readOnly
-                  className="font-mono"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(generatedPassword)}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Guarda esta contraseña de forma segura. El usuario deberá cambiarla en su primer acceso.
-              </p>
-            </div>
-          )}
 
           <div className="flex gap-4 pt-4">
             <Button 

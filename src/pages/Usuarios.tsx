@@ -115,7 +115,7 @@ export default function Usuarios() {
   const getRoleBadge = (rol: string) => {
     const variants = {
       'Administrador': 'default',
-      'Usuario_solicitante': 'secondary',
+      'Usuario': 'secondary',
       'Consultor': 'outline'
     };
     return <Badge variant={variants[rol as keyof typeof variants] as any}>{rol}</Badge>;
@@ -227,7 +227,7 @@ export default function Usuarios() {
               <div className="flex items-center space-x-2">
                 <User className="h-8 w-8 text-blue-500" />
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Solicitantes</p>
+                  <p className="text-sm font-medium text-muted-foreground">Usuarios</p>
                   <p className="text-2xl font-bold">
                     {usuarios.filter((u: any) => u.rol === 'Usuario').length}
                   </p>

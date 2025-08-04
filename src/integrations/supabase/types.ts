@@ -292,6 +292,7 @@ export type Database = {
           email: string
           id: string
           nombre_completo: string
+          password_hash: string | null
           rol: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -302,6 +303,7 @@ export type Database = {
           email: string
           id: string
           nombre_completo: string
+          password_hash?: string | null
           rol?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -312,6 +314,7 @@ export type Database = {
           email?: string
           id?: string
           nombre_completo?: string
+          password_hash?: string | null
           rol?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -423,7 +426,7 @@ export type Database = {
       document_support: "Papel" | "Digital"
       elimination_status: "Pendiente" | "En_revision" | "Eliminado"
       loan_status: "Pendiente" | "Aprobado" | "Devuelto" | "Rechazado"
-      user_role: "Administrador" | "Usuario_solicitante" | "Consultor"
+      user_role: "Administrador" | "Usuario" | "Consultor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -555,7 +558,7 @@ export const Constants = {
       document_support: ["Papel", "Digital"],
       elimination_status: ["Pendiente", "En_revision", "Eliminado"],
       loan_status: ["Pendiente", "Aprobado", "Devuelto", "Rechazado"],
-      user_role: ["Administrador", "Usuario_solicitante", "Consultor"],
+      user_role: ["Administrador", "Usuario", "Consultor"],
     },
   },
 } as const
