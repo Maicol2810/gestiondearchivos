@@ -118,7 +118,14 @@ export default function Layout({ children }: LayoutProps) {
           >
             {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
-          <h1 className="text-xl font-bold text-primary">Sistema de Archivo</h1>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/5a91f547-910d-4074-9213-cce908063776.png" 
+              alt="UIPCA Logo" 
+              className="h-8 w-auto"
+            />
+            <h1 className="text-xl font-bold text-primary">Sistema de Archivo</h1>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">

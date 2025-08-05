@@ -61,47 +61,42 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
           .eq('id', usuario.id);
         
         if (error) throw error;
-        toast({ title: "Usuario actualizado correctamente" });
+        toast({ 
+          title: "Éxito",
+          description: "Usuario actualizado correctamente"
+        });
       } else {
         // Crear nuevo usuario
         if (!formData.password) {
           toast({
             title: "Error",
-            description: "La contraseña es requerida",
+            description: "La contraseña es requerida para crear un nuevo usuario",
             variant: "destructive"
           });
           setLoading(false);
           return;
         }
         
-        // Crear usuario en Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: formData.email,
-          password: formData.password,
-          email_confirm: true,
-          user_metadata: {
-            nombre_completo: formData.nombre_completo
-          }
+        // Crear usuario usando función personalizada
+        const { data: result, error: createError } = await supabase.rpc('create_user_for_admin', {
+          user_email: formData.email,
+          user_password: formData.password,
+          full_name: formData.nombre_completo,
+          user_role: formData.rol,
+          dep_id: formData.dependencia_id || null,
+          is_active: formData.activo
         });
 
-        if (authError) throw authError;
-
-        // Actualizar perfil con datos adicionales
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            nombre_completo: formData.nombre_completo,
-            rol: formData.rol,
-            dependencia_id: formData.dependencia_id,
-            activo: formData.activo
-          })
-          .eq('id', authData.user.id);
-
-        if (profileError) throw profileError;
+        if (createError) throw createError;
+        
+        const resultData = result as any;
+        if (!resultData.success) {
+          throw new Error(resultData.message || resultData.error);
+        }
 
         toast({ 
-          title: "Usuario creado correctamente",
-          description: "El usuario puede iniciar sesión con la contraseña proporcionada"
+          title: "Éxito",
+          description: "Usuario creado correctamente. El usuario puede iniciar sesión con la contraseña proporcionada."
         });
       }
 
@@ -109,7 +104,7 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Ocurrió un error inesperado",
         variant: "destructive"
       });
     } finally {

@@ -40,7 +40,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Error en el inicio de sesión",
-          description: error.message,
+          description: "Credenciales incorrectas o usuario inactivo",
           variant: "destructive"
         });
       }
@@ -59,8 +59,15 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/5a91f547-910d-4074-9213-cce908063776.png" 
+              alt="UIPCA Logo" 
+              className="h-20 w-auto"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-primary">Sistema de Archivo</CardTitle>
-          <CardDescription>Gestión de Inventario Documental</CardDescription>
+          <CardDescription>Corporación Universitaria Politécnico Costa Atlántica</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
