@@ -91,7 +91,12 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
         
         const resultData = result as any;
         if (!resultData.success) {
-          throw new Error(resultData.message || resultData.error);
+          const errorMsg = resultData.error === 'ADMIN_REQUIRED' 
+            ? "No tienes permisos de administrador para crear usuarios"
+            : resultData.error === 'EMAIL_EXISTS'
+            ? "Este email ya está registrado en el sistema"
+            : resultData.message || "Error desconocido al crear el usuario";
+          throw new Error(errorMsg);
         }
 
         toast({ 
