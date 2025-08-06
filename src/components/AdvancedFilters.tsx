@@ -111,7 +111,6 @@ export default function AdvancedFilters({ onFiltersChange, onClose }: AdvancedFi
                 <SelectValue placeholder="Seleccionar dependencia" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas las dependencias</SelectItem>
                 {dependencias.map((dep: any) => (
                   <SelectItem key={dep.id} value={dep.id}>{dep.nombre}</SelectItem>
                 ))}
@@ -126,7 +125,6 @@ export default function AdvancedFilters({ onFiltersChange, onClose }: AdvancedFi
                 <SelectValue placeholder="Seleccionar serie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas las series</SelectItem>
                 {series.map((serie: any) => (
                   <SelectItem key={serie.id} value={serie.id}>{serie.nombre}</SelectItem>
                 ))}
@@ -145,7 +143,6 @@ export default function AdvancedFilters({ onFiltersChange, onClose }: AdvancedFi
                 <SelectValue placeholder="Seleccionar subserie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas las subseries</SelectItem>
                 {subseries.map((subserie: any) => (
                   <SelectItem key={subserie.id} value={subserie.id}>{subserie.nombre}</SelectItem>
                 ))}
@@ -160,7 +157,6 @@ export default function AdvancedFilters({ onFiltersChange, onClose }: AdvancedFi
                 <SelectValue placeholder="Seleccionar estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los estados</SelectItem>
                 <SelectItem value="Activo">Activo</SelectItem>
                 <SelectItem value="Transferido">Transferido</SelectItem>
                 <SelectItem value="Eliminado">Eliminado</SelectItem>
@@ -175,7 +171,6 @@ export default function AdvancedFilters({ onFiltersChange, onClose }: AdvancedFi
                 <SelectValue placeholder="Seleccionar soporte" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los soportes</SelectItem>
                 <SelectItem value="Papel">Papel</SelectItem>
                 <SelectItem value="Digital">Digital</SelectItem>
                 <SelectItem value="Microfilm">Microfilm</SelectItem>
