@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import DocumentForm from "@/components/DocumentForm";
+import AdvancedFilters from "@/components/AdvancedFilters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +48,8 @@ export default function Documentos() {
   const [documentToDelete, setDocumentToDelete] = useState(null);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerUrl, setViewerUrl] = useState("");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<any>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -149,11 +152,36 @@ export default function Documentos() {
     }
   };
 
-  const filteredDocumentos = documentos.filter((doc: any) =>
-    doc.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.codigo_unico.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.tipo_documental.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDocumentos = documentos.filter((doc: any) => {
+    // Filtro de búsqueda básica
+    const matchesSearch = doc.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.codigo_unico.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (doc.ubicacion_fisica && doc.ubicacion_fisica.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Filtros avanzados
+    const matchesDependencia = !advancedFilters.dependencia || doc.dependencia_id === advancedFilters.dependencia;
+    const matchesSerie = !advancedFilters.serie || doc.serie_id === advancedFilters.serie;
+    const matchesSubserie = !advancedFilters.subserie || doc.subserie_id === advancedFilters.subserie;
+    const matchesEstado = !advancedFilters.estado || doc.estado === advancedFilters.estado;
+    const matchesSoporte = !advancedFilters.soporte || doc.soporte === advancedFilters.soporte;
+    const matchesUbicacion = !advancedFilters.ubicacionFisica || 
+      (doc.ubicacion_fisica && doc.ubicacion_fisica.toLowerCase().includes(advancedFilters.ubicacionFisica.toLowerCase()));
+    
+    // Filtros de fecha
+    let matchesFechaDesde = true;
+    let matchesFechaHasta = true;
+    
+    if (advancedFilters.fechaDesde) {
+      matchesFechaDesde = new Date(doc.fecha_ingreso) >= new Date(advancedFilters.fechaDesde);
+    }
+    
+    if (advancedFilters.fechaHasta) {
+      matchesFechaHasta = new Date(doc.fecha_ingreso) <= new Date(advancedFilters.fechaHasta);
+    }
+
+    return matchesSearch && matchesDependencia && matchesSerie && matchesSubserie && 
+           matchesEstado && matchesSoporte && matchesUbicacion && matchesFechaDesde && matchesFechaHasta;
+  });
 
   const getEstadoBadge = (estado: string) => {
     const variants = {
@@ -226,13 +254,25 @@ export default function Documentos() {
                   />
                 </div>
               </div>
-              <Button variant="outline" className="hover-lift">
+              <Button 
+                variant="outline" 
+                className="hover-lift"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
                 <Filter className="h-4 w-4 mr-2" />
                 Filtros Avanzados
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Filtros avanzados */}
+        {showAdvancedFilters && (
+          <AdvancedFilters
+            onFiltersChange={setAdvancedFilters}
+            onClose={() => setShowAdvancedFilters(false)}
+          />
+        )}
 
         {/* Estadísticas rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -299,9 +339,10 @@ export default function Documentos() {
                     <TableRow>
                       <TableHead>Código</TableHead>
                       <TableHead>Nombre</TableHead>
-                      <TableHead>Tipo</TableHead>
                       <TableHead>Dependencia</TableHead>
                       <TableHead>Serie</TableHead>
+                      <TableHead>Subserie</TableHead>
+                      <TableHead>Ubicación Física</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Soporte</TableHead>
                       <TableHead>Creado por</TableHead>
@@ -313,9 +354,10 @@ export default function Documentos() {
                       <TableRow key={documento.id} className="hover:bg-accent/50 transition-colors">
                         <TableCell className="font-medium">{documento.codigo_unico}</TableCell>
                         <TableCell>{documento.nombre}</TableCell>
-                        <TableCell>{documento.tipo_documental}</TableCell>
                         <TableCell>{documento.dependencias?.nombre}</TableCell>
                         <TableCell>{documento.series_documentales?.nombre}</TableCell>
+                        <TableCell>{documento.subseries_documentales?.nombre || 'N/A'}</TableCell>
+                        <TableCell>{documento.ubicacion_fisica || 'N/A'}</TableCell>
                         <TableCell>{getEstadoBadge(documento.estado)}</TableCell>
                         <TableCell>{getSoporteBadge(documento.soporte)}</TableCell>
                         <TableCell>{documento.created_by_profile?.nombre_completo || 'N/A'}</TableCell>
