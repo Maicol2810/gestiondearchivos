@@ -22,67 +22,55 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (!session) {
-        navigate("/auth");
+    // Verificar sesión local
+    const checkLocalSession = () => {
+      const sessionData = localStorage.getItem('user_session');
+      if (sessionData) {
+        try {
+          const { user, timestamp } = JSON.parse(sessionData);
+          // Verificar que la sesión no sea muy antigua (24 horas)
+          if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && user) {
+            setUser(user);
+            setUserProfile(user);
+            setSession({ user, timestamp });
+          } else {
+            localStorage.removeItem('user_session');
+            navigate('/auth');
+          }
+        } catch (error) {
+          localStorage.removeItem('user_session');
+          navigate('/auth');
+        }
+      } else {
+        navigate('/auth');
       }
-    });
+    };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (!session) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    checkLocalSession();
   }, [navigate]);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserProfile();
-    }
-  }, [user]);
-
-  const fetchUserProfile = async () => {
-    if (!user) return;
-    
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching user profile:', error);
-    } else {
-      setUserProfile(data);
-    }
-  };
-
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      localStorage.removeItem('user_session');
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error logging out:', error);
       toast({
         title: "Error",
         description: "No se pudo cerrar sesión",
         variant: "destructive"
       });
-    } else {
-      navigate("/auth");
     }
   };
 

@@ -9,6 +9,20 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
+interface AuthUser {
+  id: string;
+  email: string;
+  nombre_completo: string;
+  rol: string;
+}
+
+interface AuthResponse {
+  success: boolean;
+  user?: AuthUser;
+  message?: string;
+  error?: string;
+}
+
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,13 +31,21 @@ export default function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/dashboard");
+    // Verificar si hay una sesión activa en localStorage
+    const sessionData = localStorage.getItem('user_session');
+    if (sessionData) {
+      try {
+        const { user, timestamp } = JSON.parse(sessionData);
+        // Verificar que la sesión no sea muy antigua (24 horas)
+        if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && user) {
+          navigate("/dashboard");
+        } else {
+          localStorage.removeItem('user_session');
+        }
+      } catch (error) {
+        localStorage.removeItem('user_session');
       }
-    });
-
-    return () => subscription.unsubscribe();
+    }
   }, [navigate]);
 
 
@@ -32,19 +54,47 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      const { data, error } = await supabase.rpc('authenticate_user', {
+        user_email: email,
+        user_password: password
       });
 
       if (error) {
         toast({
-          title: "Error en el inicio de sesión",
-          description: "Credenciales incorrectas o usuario inactivo",
+          title: "Error en el sistema",
+          description: "Error interno del sistema",
           variant: "destructive"
         });
+        return;
       }
+
+      const authData = data as unknown as AuthResponse;
+
+      if (!authData.success) {
+        toast({
+          title: "Error en el inicio de sesión",
+          description: authData.message || "Credenciales incorrectas",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Guardar información del usuario en localStorage
+      localStorage.setItem('user_session', JSON.stringify({
+        user: authData.user,
+        timestamp: Date.now()
+      }));
+
+      // Redirigir al dashboard
+      navigate("/dashboard");
+      
+      toast({
+        title: "¡Bienvenido!",
+        description: "Has iniciado sesión correctamente",
+      });
+
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Error",
         description: "Ocurrió un error inesperado",

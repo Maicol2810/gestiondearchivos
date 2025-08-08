@@ -404,6 +404,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_user: {
+        Args: { user_email: string; user_password: string }
+        Returns: Json
+      }
       create_first_admin: {
         Args: Record<PropertyKey, never>
         Returns: undefined
