@@ -30,7 +30,6 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
     defaultValues: {
       nombre: document?.nombre || "",
       codigo_unico: document?.codigo_unico || "",
-      tipo_documental: document?.tipo_documental || "",
       dependencia_id: document?.dependencia_id || "",
       serie_id: document?.serie_id || "",
       subserie_id: document?.subserie_id || "",
@@ -38,7 +37,6 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
       ubicacion_fisica: document?.ubicacion_fisica || "",
       soporte: document?.soporte || "Papel",
       estado: document?.estado || "Activo",
-      palabras_clave: document?.palabras_clave?.join(", ") || "",
       observaciones: document?.observaciones || ""
     }
   });
@@ -48,7 +46,6 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
     if (document) {
       setValue("dependencia_id", document.dependencia_id);
       setValue("serie_id", document.serie_id);
-      setValue("subserie_id", document.subserie_id);
       setValue("soporte", document.soporte);
       setValue("estado", document.estado);
       setSelectedSerie(document.serie_id);
@@ -155,13 +152,8 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         archivoData = await uploadFile(file);
       }
 
-      const palabrasClaveArray = data.palabras_clave 
-        ? data.palabras_clave.split(',').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
-        : [];
-
       const documentData = {
         ...data,
-        palabras_clave: palabrasClaveArray,
         archivo_nombre: archivoData?.fileName,
         archivo_url: archivoData?.url,
         created_by: (await supabase.auth.getUser()).data.user?.id
@@ -222,16 +214,6 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
                 className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
               />
               {errors.codigo_unico && <p className="text-sm text-destructive">{errors.codigo_unico.message as string}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="tipo_documental">Tipo Documental</Label>
-              <Input
-                id="tipo_documental"
-                {...register("tipo_documental", { required: "Este campo es requerido" })}
-                className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-              />
-              {errors.tipo_documental && <p className="text-sm text-destructive">{errors.tipo_documental.message as string}</p>}
             </div>
 
             <div>
@@ -342,16 +324,6 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="palabras_clave">Palabras Clave (separadas por comas)</Label>
-            <Input
-              id="palabras_clave"
-              {...register("palabras_clave")}
-              placeholder="palabra1, palabra2, palabra3"
-              className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-            />
           </div>
 
           <div>
