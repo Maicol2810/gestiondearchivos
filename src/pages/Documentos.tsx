@@ -85,8 +85,18 @@ export default function Documentos() {
 
   const handleViewDocument = (url: string) => {
     if (url) {
-      setViewerUrl(url);
-      setViewerOpen(true);
+      // Check if URL is accessible
+      const img = new Image();
+      img.onload = () => {
+        setViewerUrl(url);
+        setViewerOpen(true);
+      };
+      img.onerror = () => {
+        // If image fails, try opening as PDF or direct link
+        setViewerUrl(url);
+        setViewerOpen(true);
+      };
+      img.src = url;
     } else {
       toast({
         title: "Error",
@@ -99,18 +109,12 @@ export default function Documentos() {
   const handleDownloadDocument = (url: string, filename: string) => {
     if (url) {
       try {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename || 'documento';
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Open in new tab for download
+        window.open(url, '_blank', 'noopener,noreferrer');
         
         toast({
           title: "Descarga iniciada",
-          description: "El archivo se está descargando"
+          description: "El archivo se abrió en una nueva pestaña"
         });
       } catch (error) {
         toast({
@@ -452,18 +456,26 @@ export default function Documentos() {
                 </Button>
               </div>
               <div className="flex-1 p-4">
-                {viewerUrl.toLowerCase().includes('.pdf') ? (
+                {viewerUrl && viewerUrl.toLowerCase().includes('.pdf') ? (
                   <iframe
                     src={viewerUrl}
                     className="w-full h-full border-0"
                     title="Documento PDF"
                   />
-                ) : (
+                ) : viewerUrl ? (
                   <img
                     src={viewerUrl}
                     alt="Documento"
                     className="max-w-full max-h-full object-contain mx-auto"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement!.innerHTML = '<p class="text-center text-gray-500">No se puede mostrar el archivo. <a href="' + viewerUrl + '" target="_blank" class="text-blue-500 underline">Abrir en nueva pestaña</a></p>';
+                    }}
                   />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-500">No hay archivo para mostrar</p>
+                  </div>
                 )}
               </div>
             </div>

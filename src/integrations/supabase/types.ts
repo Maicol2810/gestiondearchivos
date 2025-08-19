@@ -97,11 +97,9 @@ export type Database = {
           id: string
           nombre: string
           observaciones: string | null
-          palabras_clave: string[] | null
           serie_id: string
           soporte: Database["public"]["Enums"]["document_support"]
           subserie_id: string
-          tipo_documental: string
           ubicacion_fisica: string | null
           updated_at: string
         }
@@ -118,11 +116,9 @@ export type Database = {
           id?: string
           nombre: string
           observaciones?: string | null
-          palabras_clave?: string[] | null
           serie_id: string
           soporte?: Database["public"]["Enums"]["document_support"]
           subserie_id: string
-          tipo_documental: string
           ubicacion_fisica?: string | null
           updated_at?: string
         }
@@ -139,11 +135,9 @@ export type Database = {
           id?: string
           nombre?: string
           observaciones?: string | null
-          palabras_clave?: string[] | null
           serie_id?: string
           soporte?: Database["public"]["Enums"]["document_support"]
           subserie_id?: string
-          tipo_documental?: string
           ubicacion_fisica?: string | null
           updated_at?: string
         }
