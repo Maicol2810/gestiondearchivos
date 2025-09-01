@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import ConsultaForm from "@/components/ConsultaForm";
 import { Button } from "@/components/ui/button";
@@ -16,22 +17,36 @@ export default function Consultas() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
     fetchConsultas();
   }, []);
 
   const fetchConsultas = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      let query = supabase
         .from('consultas')
         .select(`
           *,
           profiles(nombre_completo)
-        `)
-        .order('created_at', { ascending: false });
+        `);
+
+      // Si no es administrador, solo mostrar sus propias consultas
+      if (user.rol !== 'Administrador') {
+        query = query.eq('usuario_id', user.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setConsultas(data || []);

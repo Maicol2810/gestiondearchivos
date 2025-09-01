@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,18 +72,13 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   }, [selectedSerie]);
 
   const fetchUserProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = getCurrentUser();
     if (user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*, dependencias(nombre)')
-        .eq('id', user.id)
-        .single();
-      setUserProfile(data);
+      setUserProfile(user);
       
       // Si el usuario no es administrador, auto-seleccionar su dependencia
-      if (data && data.rol !== 'Administrador' && data.dependencia_id && !document) {
-        setValue("dependencia_id", data.dependencia_id);
+      if (user && user.rol !== 'Administrador' && user.dependencia_id && !document) {
+        setValue("dependencia_id", user.dependencia_id);
       }
     }
   };
@@ -156,7 +152,7 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         ...data,
         archivo_nombre: archivoData?.fileName,
         archivo_url: archivoData?.url,
-        created_by: (await supabase.auth.getUser()).data.user?.id
+        created_by: getCurrentUser()?.id
       };
 
       if (document) {

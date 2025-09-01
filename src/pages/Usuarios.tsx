@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import UsuarioForm from "@/components/UsuarioForm";
 import { Button } from "@/components/ui/button";
@@ -40,28 +41,34 @@ export default function Usuarios() {
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
+    setUserRole(user?.rol || "");
     fetchUsuarios();
-    checkUserRole();
   }, []);
-
-  const checkUserRole = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('rol')
-        .eq('id', user.id)
-        .single();
-      setUserRole(data?.rol || '');
-    }
-  };
 
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      // Solo los administradores pueden ver todos los usuarios
+      if (user.rol !== 'Administrador') {
+        toast({
+          title: "Acceso denegado",
+          description: "No tienes permisos para ver esta sección",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -85,6 +92,11 @@ export default function Usuarios() {
 
   const handleStatusChange = async (userId: string, newStatus: boolean) => {
     try {
+      const user = getCurrentUser();
+      if (!user || user.rol !== 'Administrador') {
+        throw new Error("No tienes permisos para realizar esta acción");
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({ activo: newStatus })

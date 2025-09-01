@@ -11,7 +11,28 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+    persistSession: false,
+    autoRefreshToken: false,
   }
 });
+
+// Helper function to get current user from localStorage
+export const getCurrentUser = () => {
+  const sessionData = localStorage.getItem('user_session');
+  if (sessionData) {
+    try {
+      const { user, timestamp } = JSON.parse(sessionData);
+      // Verificar que la sesión no sea muy antigua (24 horas)
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && user) {
+        return user;
+      } else {
+        localStorage.removeItem('user_session');
+        return null;
+      }
+    } catch (error) {
+      localStorage.removeItem('user_session');
+      return null;
+    }
+  }
+  return null;
+};

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,20 +64,43 @@ export default function Reportes() {
   const fetchReportData = async () => {
     setLoading(true);
     try {
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
       // Fetch documentos data
-      const { data: documentos } = await supabase
+      let documentosQuery = supabase
         .from('documentos')
         .select('id, estado, soporte, dependencia_id, dependencias(nombre)');
 
+      // Si no es administrador, filtrar por dependencia
+      if (user.rol !== 'Administrador' && user.dependencia_id) {
+        documentosQuery = documentosQuery.eq('dependencia_id', user.dependencia_id);
+      }
+
+      const { data: documentos } = await documentosQuery;
+
       // Fetch prestamos data
-      const { data: prestamos } = await supabase
+      let prestamosQuery = supabase
         .from('prestamos')
         .select('id, estado, created_at');
 
+      // Si no es administrador, filtrar por usuario
+      if (user.rol !== 'Administrador') {
+        prestamosQuery = prestamosQuery.eq('usuario_solicitante_id', user.id);
+      }
+
+      const { data: prestamos } = await prestamosQuery;
+
       // Fetch usuarios data
-      const { data: usuarios } = await supabase
-        .from('profiles')
-        .select('id, activo, rol, dependencia_id, dependencias(nombre)');
+      let usuarios = [];
+      if (user.rol === 'Administrador') {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, activo, rol, dependencia_id, dependencias(nombre)');
+        usuarios = data || [];
+      }
 
       // Process documentos data
       const docData = {

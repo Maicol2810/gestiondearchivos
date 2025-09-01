@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import DocumentForm from "@/components/DocumentForm";
 import AdvancedFilters from "@/components/AdvancedFilters";
@@ -51,14 +52,39 @@ export default function Documentos() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<any>({});
   const { toast } = useToast();
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
     fetchDocumentos();
   }, []);
 
   const fetchDocumentos = async () => {
     setLoading(true);
     try {
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      let query = supabase
+        .from('documentos')
+        .select(`
+          *,
+          dependencias(nombre),
+          series_documentales(nombre),
+          subseries_documentales(nombre),
+          created_by_profile:profiles!created_by(nombre_completo)
+        `);
+
+      // Si no es administrador, filtrar por dependencia
+      if (user.rol !== 'Administrador' && user.dependencia_id) {
+        query = query.eq('dependencia_id', user.dependencia_id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
       const { data, error } = await supabase
         .from('documentos')
         .select(`
@@ -75,7 +101,7 @@ export default function Documentos() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "No se pudieron cargar los documentos",
+        description: error.message || "No se pudieron cargar los documentos",
         variant: "destructive"
       });
     } finally {

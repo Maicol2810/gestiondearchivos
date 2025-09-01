@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,46 +50,54 @@ export default function Prestamos() {
     observaciones: ""
   });
   const { toast } = useToast();
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
+    setUserRole(user?.rol || "");
     fetchData();
-    checkUserRole();
   }, []);
-
-  const checkUserRole = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('rol')
-        .eq('id', user.id)
-        .single();
-      setUserRole(data?.rol || '');
-    }
-  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
       // Fetch préstamos
-      const { data: prestamosData, error: prestamosError } = await supabase
+      let prestamosQuery = supabase
         .from('prestamos')
         .select(`
           *,
           documentos(nombre, codigo_unico),
           profiles(nombre_completo)
-        `)
-        .order('created_at', { ascending: false });
+        `);
+
+      // Si no es administrador, solo mostrar préstamos relacionados con su dependencia
+      if (user.rol !== 'Administrador' && user.dependencia_id) {
+        prestamosQuery = prestamosQuery.or(`usuario_solicitante_id.eq.${user.id},documentos.dependencia_id.eq.${user.dependencia_id}`);
+      }
+
+      const { data: prestamosData, error: prestamosError } = await prestamosQuery.order('created_at', { ascending: false });
 
       if (prestamosError) throw prestamosError;
       setPrestamos(prestamosData || []);
 
       // Fetch documentos disponibles
-      const { data: documentosData, error: documentosError } = await supabase
+      let documentosQuery = supabase
         .from('documentos')
         .select('id, nombre, codigo_unico')
-        .eq('estado', 'Activo')
-        .order('nombre');
+        .eq('estado', 'Activo');
+
+      // Si no es administrador, filtrar por dependencia
+      if (user.rol !== 'Administrador' && user.dependencia_id) {
+        documentosQuery = documentosQuery.eq('dependencia_id', user.dependencia_id);
+      }
+
+      const { data: documentosData, error: documentosError } = await documentosQuery.order('nombre');
 
       if (documentosError) throw documentosError;
       setDocumentos(documentosData || []);
@@ -106,7 +115,7 @@ export default function Prestamos() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = getCurrentUser();
       if (!user) throw new Error("Usuario no autenticado");
 
       const { error } = await supabase
@@ -139,12 +148,16 @@ export default function Prestamos() {
 
   const handleStatusChange = async (prestamoId: string, newStatus: string) => {
     try {
+      const user = getCurrentUser();
+      if (!user || user.rol !== 'Administrador') {
+        throw new Error("No tienes permisos para realizar esta acción");
+      }
+
       const updateData: any = { estado: newStatus };
       
       if (newStatus === 'Aprobado') {
         updateData.fecha_entrega = new Date().toISOString();
-        const { data: { user } } = await supabase.auth.getUser();
-        updateData.aprobado_por = user?.id;
+        updateData.aprobado_por = user.id;
       } else if (newStatus === 'Devuelto') {
         updateData.fecha_devolucion_real = new Date().toISOString();
       }

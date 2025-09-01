@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, BookOpen, Trash2, Users } from "lucide-react";
@@ -11,40 +12,71 @@ export default function Dashboard() {
     pendingEliminations: 0,
     totalUsers: 0
   });
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
     fetchStats();
   }, []);
 
   const fetchStats = async () => {
     try {
+      const user = getCurrentUser();
+      if (!user) {
+        console.error('Usuario no autenticado');
+        return;
+      }
+
       // Total documentos
-      const { count: documentsCount } = await supabase
+      let documentsQuery = supabase
         .from('documentos')
         .select('*', { count: 'exact', head: true });
 
+      // Si no es administrador, filtrar por dependencia
+      if (user.rol !== 'Administrador' && user.dependencia_id) {
+        documentsQuery = documentsQuery.eq('dependencia_id', user.dependencia_id);
+      }
+
+      const { count: documentsCount } = await documentsQuery;
+
       // Préstamos activos
-      const { count: lendsCount } = await supabase
+      let lendsQuery = supabase
         .from('prestamos')
         .select('*', { count: 'exact', head: true })
         .in('estado', ['Pendiente', 'Aprobado']);
 
+      // Si no es administrador, filtrar por usuario o dependencia
+      if (user.rol !== 'Administrador') {
+        lendsQuery = lendsQuery.eq('usuario_solicitante_id', user.id);
+      }
+
+      const { count: lendsCount } = await lendsQuery;
+
       // Eliminaciones pendientes
-      const { count: eliminationsCount } = await supabase
-        .from('eliminaciones')
-        .select('*', { count: 'exact', head: true })
-        .eq('estado', 'Pendiente');
+      let eliminationsCount = 0;
+      if (user.rol === 'Administrador') {
+        const { count } = await supabase
+          .from('eliminaciones')
+          .select('*', { count: 'exact', head: true })
+          .eq('estado', 'Pendiente');
+        eliminationsCount = count || 0;
+      }
 
       // Total usuarios
-      const { count: usersCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      let usersCount = 0;
+      if (user.rol === 'Administrador') {
+        const { count } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+        usersCount = count || 0;
+      }
 
       setStats({
         totalDocuments: documentsCount || 0,
         activeLends: lendsCount || 0,
-        pendingEliminations: eliminationsCount || 0,
-        totalUsers: usersCount || 0
+        pendingEliminations: eliminationsCount,
+        totalUsers: usersCount
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
