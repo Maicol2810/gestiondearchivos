@@ -101,12 +101,13 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
 
         toast({ 
           title: "Éxito",
-          description: "Usuario creado correctamente. El usuario puede iniciar sesión con la contraseña proporcionada."
+          description: "Usuario creado correctamente"
         });
       }
 
       onSuccess();
     } catch (error: any) {
+      console.error('Error in user form:', error);
       toast({
         title: "Error",
         description: error.message || "Ocurrió un error inesperado",

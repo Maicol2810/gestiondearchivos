@@ -157,12 +157,11 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         ...data,
         archivo_nombre: archivoData?.fileName,
         archivo_url: archivoData?.url,
-        created_by: user.id
       };
 
       if (document) {
         // Usar función RPC para actualizar documento
-        const { error } = await supabase.rpc('update_document', {
+        const { data: result, error } = await supabase.rpc('update_document', {
           document_id: document.id,
           document_data: documentData,
           user_id: user.id,
@@ -170,16 +169,28 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         });
         
         if (error) throw error;
+        
+        const resultData = result as any;
+        if (!resultData.success) {
+          throw new Error(resultData.message || 'Error al actualizar el documento');
+        }
+        
         toast({ title: "Documento actualizado correctamente" });
       } else {
         // Usar función RPC para crear documento
-        const { error } = await supabase.rpc('create_document', {
+        const { data: result, error } = await supabase.rpc('create_document', {
           document_data: documentData,
           user_id: user.id,
           user_role: user.rol
         });
         
         if (error) throw error;
+        
+        const resultData = result as any;
+        if (!resultData.success) {
+          throw new Error(resultData.message || 'Error al crear el documento');
+        }
+        
         toast({ title: "Documento creado correctamente" });
       }
 

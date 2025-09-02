@@ -66,6 +66,7 @@ export default function Usuarios() {
           description: "No tienes permisos para ver esta sección",
           variant: "destructive"
         });
+        setUsuarios([]);
         return;
       }
 
@@ -77,6 +78,7 @@ export default function Usuarios() {
       if (error) throw error;
       setUsuarios(data || []);
     } catch (error: any) {
+      console.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: error.message,

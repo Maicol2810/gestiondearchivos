@@ -77,6 +77,7 @@ export default function Documentos() {
       if (error) throw error;
       setDocumentos(data || []);
     } catch (error: any) {
+      console.error('Error fetching documents:', error);
       toast({
         title: "Error",
         description: error.message || "No se pudieron cargar los documentos",
