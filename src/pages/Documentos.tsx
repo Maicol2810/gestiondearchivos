@@ -85,17 +85,6 @@ export default function Documentos() {
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
-      const { data, error } = await supabase
-        .from('documentos')
-        .select(`
-          *,
-          dependencias(nombre),
-          series_documentales(nombre),
-          subseries_documentales(nombre),
-          created_by_profile:profiles!created_by(nombre_completo)
-        `)
-        .order('created_at', { ascending: false });
-
       if (error) throw error;
       setDocumentos(data || []);
     } catch (error: any) {
