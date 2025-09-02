@@ -142,6 +142,11 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   const onSubmit = async (data: any) => {
     setLoading(true);
     try {
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
       let archivoData = null;
       
       if (file) {
@@ -152,21 +157,27 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         ...data,
         archivo_nombre: archivoData?.fileName,
         archivo_url: archivoData?.url,
-        created_by: getCurrentUser()?.id
+        created_by: user.id
       };
 
       if (document) {
-        const { error } = await supabase
-          .from('documentos')
-          .update(documentData)
-          .eq('id', document.id);
+        // Usar función RPC para actualizar documento
+        const { error } = await supabase.rpc('update_document', {
+          document_id: document.id,
+          document_data: documentData,
+          user_id: user.id,
+          user_role: user.rol
+        });
         
         if (error) throw error;
         toast({ title: "Documento actualizado correctamente" });
       } else {
-        const { error } = await supabase
-          .from('documentos')
-          .insert([documentData]);
+        // Usar función RPC para crear documento
+        const { error } = await supabase.rpc('create_document', {
+          document_data: documentData,
+          user_id: user.id,
+          user_role: user.rol
+        });
         
         if (error) throw error;
         toast({ title: "Documento creado correctamente" });

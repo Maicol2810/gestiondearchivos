@@ -28,55 +28,26 @@ export default function Dashboard() {
         return;
       }
 
-      // Total documentos
-      let documentsQuery = supabase
-        .from('documentos')
-        .select('*', { count: 'exact', head: true });
+      // Usar función RPC para obtener estadísticas
+      const { data: statsData, error: statsError } = await supabase.rpc('get_dashboard_stats', {
+        user_id: user.id,
+        user_role: user.rol
+      });
 
-      // Si no es administrador, filtrar por dependencia
-      if (user.rol !== 'Administrador' && user.dependencia_id) {
-        documentsQuery = documentsQuery.eq('dependencia_id', user.dependencia_id);
-      }
+      if (statsError) throw statsError;
 
-      const { count: documentsCount } = await documentsQuery;
-
-      // Préstamos activos
-      let lendsQuery = supabase
-        .from('prestamos')
-        .select('*', { count: 'exact', head: true })
-        .in('estado', ['Pendiente', 'Aprobado']);
-
-      // Si no es administrador, filtrar por usuario o dependencia
-      if (user.rol !== 'Administrador') {
-        lendsQuery = lendsQuery.eq('usuario_solicitante_id', user.id);
-      }
-
-      const { count: lendsCount } = await lendsQuery;
-
-      // Eliminaciones pendientes
-      let eliminationsCount = 0;
-      if (user.rol === 'Administrador') {
-        const { count } = await supabase
-          .from('eliminaciones')
-          .select('*', { count: 'exact', head: true })
-          .eq('estado', 'Pendiente');
-        eliminationsCount = count || 0;
-      }
-
-      // Total usuarios
-      let usersCount = 0;
-      if (user.rol === 'Administrador') {
-        const { count } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-        usersCount = count || 0;
-      }
+      const stats = statsData || {
+        total_documents: 0,
+        active_lends: 0,
+        pending_eliminations: 0,
+        total_users: 0
+      };
 
       setStats({
-        totalDocuments: documentsCount || 0,
-        activeLends: lendsCount || 0,
-        pendingEliminations: eliminationsCount,
-        totalUsers: usersCount
+        totalDocuments: stats.total_documents || 0,
+        activeLends: stats.active_lends || 0,
+        pendingEliminations: stats.pending_eliminations || 0,
+        totalUsers: stats.total_users || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);

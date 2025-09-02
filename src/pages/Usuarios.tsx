@@ -69,13 +69,10 @@ export default function Usuarios() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          dependencias(nombre)
-        `)
-        .order('created_at', { ascending: false });
+      // Usar función RPC para obtener usuarios
+      const { data, error } = await supabase.rpc('get_all_users', {
+        requesting_user_id: user.id
+      });
 
       if (error) throw error;
       setUsuarios(data || []);

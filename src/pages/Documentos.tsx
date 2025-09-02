@@ -68,22 +68,11 @@ export default function Documentos() {
         throw new Error("Usuario no autenticado");
       }
 
-      let query = supabase
-        .from('documentos')
-        .select(`
-          *,
-          dependencias(nombre),
-          series_documentales(nombre),
-          subseries_documentales(nombre),
-          created_by_profile:profiles!created_by(nombre_completo)
-        `);
-
-      // Si no es administrador, filtrar por dependencia
-      if (user.rol !== 'Administrador' && user.dependencia_id) {
-        query = query.eq('dependencia_id', user.dependencia_id);
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Usar función RPC para obtener documentos con permisos
+      const { data, error } = await supabase.rpc('get_user_documents', {
+        user_id: user.id,
+        user_role: user.rol
+      });
 
       if (error) throw error;
       setDocumentos(data || []);

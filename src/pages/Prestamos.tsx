@@ -67,37 +67,20 @@ export default function Prestamos() {
         throw new Error("Usuario no autenticado");
       }
 
-      // Fetch préstamos
-      let prestamosQuery = supabase
-        .from('prestamos')
-        .select(`
-          *,
-          documentos(nombre, codigo_unico),
-          profiles(nombre_completo)
-        `);
-
-      // Si no es administrador, solo mostrar préstamos relacionados con su dependencia
-      if (user.rol !== 'Administrador' && user.dependencia_id) {
-        prestamosQuery = prestamosQuery.or(`usuario_solicitante_id.eq.${user.id},documentos.dependencia_id.eq.${user.dependencia_id}`);
-      }
-
-      const { data: prestamosData, error: prestamosError } = await prestamosQuery.order('created_at', { ascending: false });
+      // Fetch préstamos usando función RPC
+      const { data: prestamosData, error: prestamosError } = await supabase.rpc('get_user_prestamos', {
+        user_id: user.id,
+        user_role: user.rol
+      });
 
       if (prestamosError) throw prestamosError;
       setPrestamos(prestamosData || []);
 
-      // Fetch documentos disponibles
-      let documentosQuery = supabase
-        .from('documentos')
-        .select('id, nombre, codigo_unico')
-        .eq('estado', 'Activo');
-
-      // Si no es administrador, filtrar por dependencia
-      if (user.rol !== 'Administrador' && user.dependencia_id) {
-        documentosQuery = documentosQuery.eq('dependencia_id', user.dependencia_id);
-      }
-
-      const { data: documentosData, error: documentosError } = await documentosQuery.order('nombre');
+      // Fetch documentos disponibles usando función RPC
+      const { data: documentosData, error: documentosError } = await supabase.rpc('get_available_documents', {
+        user_id: user.id,
+        user_role: user.rol
+      });
 
       if (documentosError) throw documentosError;
       setDocumentos(documentosData || []);
