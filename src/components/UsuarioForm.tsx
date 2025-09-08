@@ -24,7 +24,8 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
     rol: usuario?.rol || "Usuario",
     dependencia_id: usuario?.dependencia_id || "",
     activo: usuario?.activo ?? true,
-    password: ""
+    password: "",
+    changePassword: false
   });
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
@@ -49,18 +50,32 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
     
     try {
       if (usuario) {
-        // Actualizar usuario existente
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            nombre_completo: formData.nombre_completo,
-            rol: formData.rol,
-            dependencia_id: formData.dependencia_id,
-            activo: formData.activo
-          })
-          .eq('id', usuario.id);
+        // Actualizar usuario existente usando función RPC
+        const updateData = {
+          nombre_completo: formData.nombre_completo,
+          rol: formData.rol,
+          dependencia_id: formData.dependencia_id,
+          activo: formData.activo
+        };
+
+        // Si se quiere cambiar la contraseña, incluirla
+        if (formData.changePassword && formData.password) {
+          updateData.password = formData.password;
+        }
+
+        const { data: result, error } = await supabase.rpc('update_user_profile', {
+          user_id: usuario.id,
+          user_data: updateData,
+          requesting_user_id: getCurrentUser()?.id
+        });
         
         if (error) throw error;
+        
+        const resultData = result as any;
+        if (!resultData.success) {
+          throw new Error(resultData.message || 'Error al actualizar el usuario');
+        }
+        
         toast({ 
           title: "Éxito",
           description: "Usuario actualizado correctamente"
@@ -216,6 +231,44 @@ export default function UsuarioForm({ onSuccess, onCancel, usuario }: UsuarioFor
               </div>
             )}
 
+            {usuario && (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="changePassword"
+                    checked={formData.changePassword}
+                    onCheckedChange={(checked) => handleInputChange("changePassword", checked)}
+                  />
+                  <Label htmlFor="changePassword">Cambiar contraseña</Label>
+                </div>
+                
+                {formData.changePassword && (
+                  <div>
+                    <Label htmlFor="password">Nueva Contraseña</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 pr-10"
+                        required={formData.changePassword}
+                        placeholder="Ingrese la nueva contraseña"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex items-center space-x-2">
               <Switch
                 id="activo"

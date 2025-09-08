@@ -134,6 +134,11 @@ export default function Configuracion() {
     setLoading(true);
 
     try {
+      const user = getCurrentUser();
+      if (!user || user.rol !== 'Administrador') {
+        throw new Error("Solo los administradores pueden gestionar dependencias");
+      }
+
       if (editingItem) {
         const { error } = await supabase
           .from('dependencias')
@@ -191,6 +196,11 @@ export default function Configuracion() {
     setLoading(true);
 
     try {
+      const user = getCurrentUser();
+      if (!user || user.rol !== 'Administrador') {
+        throw new Error("Solo los administradores pueden gestionar series documentales");
+      }
+
       const serieData = {
         ...serieForm,
         tiempo_retencion_anos: serieForm.tiempo_retencion_anos ? parseInt(serieForm.tiempo_retencion_anos) : null
@@ -234,6 +244,11 @@ export default function Configuracion() {
     setLoading(true);
 
     try {
+      const user = getCurrentUser();
+      if (!user || user.rol !== 'Administrador') {
+        throw new Error("Solo los administradores pueden gestionar subseries documentales");
+      }
+
       const subserieData = {
         ...subserieForm,
         tiempo_retencion_anos: subserieForm.tiempo_retencion_anos ? parseInt(subserieForm.tiempo_retencion_anos) : null

@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import DocumentForm from "@/components/DocumentForm";
 import AdvancedFilters from "@/components/AdvancedFilters";
+import ExcelImportExport from "@/components/ExcelImportExport";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -282,6 +283,12 @@ export default function Documentos() {
             onClose={() => setShowAdvancedFilters(false)}
           />
         )}
+
+        {/* Excel Import/Export */}
+        <ExcelImportExport 
+          onImportSuccess={fetchDocumentos}
+          documentos={filteredDocumentos}
+        />
 
         {/* Estadísticas rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

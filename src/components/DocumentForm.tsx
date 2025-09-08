@@ -122,21 +122,32 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
   };
 
   const uploadFile = async (file: File) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `documentos/${fileName}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `documentos/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('documentos')
-      .upload(filePath, file);
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documentos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Error al subir archivo: ${uploadError.message}`);
+      }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('documentos')
-      .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage
+        .from('documentos')
+        .getPublicUrl(filePath);
 
-    return { fileName: file.name, url: publicUrl };
+      return { fileName: file.name, url: publicUrl, path: filePath };
+    } catch (error) {
+      console.error('File upload error:', error);
+      throw error;
+    }
   };
 
   const onSubmit = async (data: any) => {
@@ -150,13 +161,25 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
       let archivoData = null;
       
       if (file) {
-        archivoData = await uploadFile(file);
+        try {
+          archivoData = await uploadFile(file);
+          console.log('File uploaded successfully:', archivoData);
+        } catch (uploadError) {
+          console.error('File upload failed:', uploadError);
+          toast({
+            title: "Error al subir archivo",
+            description: uploadError.message || "No se pudo subir el archivo",
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
       }
 
       const documentData = {
         ...data,
-        archivo_nombre: archivoData?.fileName,
-        archivo_url: archivoData?.url,
+        archivo_nombre: archivoData?.fileName || null,
+        archivo_url: archivoData?.url || null,
       };
 
       if (document) {
@@ -196,6 +219,7 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
       onSuccess();
     } catch (error: any) {
+      console.error('Document submission error:', error);
       toast({
         title: "Error",
         description: error.message,

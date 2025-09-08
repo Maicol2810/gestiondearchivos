@@ -78,10 +78,7 @@ export default function Layout({ children }: LayoutProps) {
     { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
     { icon: FileText, label: "Documentos", path: "/documentos" },
     { icon: BookOpen, label: "Préstamos", path: "/prestamos" },
-    { icon: Trash2, label: "Eliminaciones", path: "/eliminaciones" },
-    { icon: Search, label: "Consultas", path: "/consultas" },
     { icon: Users, label: "Usuarios", path: "/usuarios", adminOnly: true },
-    { icon: BarChart3, label: "Reportes", path: "/reportes" },
     { icon: Settings, label: "Configuración", path: "/configuracion", adminOnly: true },
   ];
 
