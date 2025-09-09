@@ -168,11 +168,11 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
           console.error('File upload failed:', uploadError);
           toast({
             title: "Error al subir archivo",
-            description: uploadError.message || "No se pudo subir el archivo",
+            description: "No se pudo subir el archivo. Continuando sin archivo...",
             variant: "destructive"
           });
-          setLoading(false);
-          return;
+          // Continue without file instead of stopping
+          archivoData = null;
         }
       }
 
@@ -214,7 +214,10 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
           throw new Error(resultData.message || 'Error al crear el documento');
         }
         
-        toast({ title: "Documento creado correctamente" });
+        toast({ 
+          title: "Documento creado correctamente",
+          description: archivoData ? "Documento y archivo guardados" : "Documento guardado sin archivo"
+        });
       }
 
       onSuccess();

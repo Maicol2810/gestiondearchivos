@@ -44,6 +44,22 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
+// Helper function to get current user
+const getCurrentUser = () => {
+  const sessionData = localStorage.getItem('user_session');
+  if (sessionData) {
+    try {
+      const { user, timestamp } = JSON.parse(sessionData);
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && user) {
+        return user;
+      }
+    } catch (error) {
+      return null;
+    }
+  }
+  return null;
+};
+
 export default function Configuracion() {
   const [dependencias, setDependencias] = useState([]);
   const [series, setSeries] = useState([]);
