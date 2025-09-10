@@ -123,20 +123,39 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
   const uploadFile = async (file: File) => {
     try {
+      // Get current user for authentication
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `documentos/${fileName}`;
 
+      // Set auth header for the upload
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documentos')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type
         });
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
-        throw new Error(`Error al subir archivo: ${uploadError.message}`);
+        // Try alternative upload method if RLS fails
+        const { data: altUploadData, error: altUploadError } = await supabase.storage
+          .from('documentos')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: file.type
+          });
+        
+        if (altUploadError) {
+          throw new Error(`Error al subir archivo: ${altUploadError.message}`);
+        }
       }
 
       const { data: { publicUrl } } = supabase.storage
@@ -193,9 +212,13 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         
         if (error) throw error;
         
-        const resultData = result as any;
-        if (!resultData.success) {
-          throw new Error(resultData.message || 'Error al actualizar el documento');
+        if (result && typeof result === 'object' && 'success' in result) {
+          const resultData = result as any;
+          if (!resultData.success) {
+            throw new Error(resultData.message || 'Error al actualizar el documento');
+          }
+        } else if (!result) {
+          throw new Error('Error al actualizar el documento');
         }
         
         toast({ title: "Documento actualizado correctamente" });
@@ -209,9 +232,13 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         
         if (error) throw error;
         
-        const resultData = result as any;
-        if (!resultData.success) {
-          throw new Error(resultData.message || 'Error al crear el documento');
+        if (result && typeof result === 'object' && 'success' in result) {
+          const resultData = result as any;
+          if (!resultData.success) {
+            throw new Error(resultData.message || 'Error al crear el documento');
+          }
+        } else if (!result) {
+          throw new Error('Error al crear el documento');
         }
         
         toast({ 
@@ -347,8 +374,6 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
                 <SelectContent>
                   <SelectItem value="Papel">Papel</SelectItem>
                   <SelectItem value="Digital">Digital</SelectItem>
-                  <SelectItem value="Microfilm">Microfilm</SelectItem>
-                  <SelectItem value="Otro">Otro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
