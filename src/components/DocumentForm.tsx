@@ -123,39 +123,20 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
   const uploadFile = async (file: File) => {
     try {
-      // Get current user for authentication
-      const user = getCurrentUser();
-      if (!user) {
-        throw new Error("Usuario no autenticado");
-      }
-
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `documentos/${fileName}`;
 
-      // Set auth header for the upload
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      // Upload file directly without RLS restrictions
+      const { error: uploadError } = await supabase.storage
         .from('documentos')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          contentType: file.type
+          upsert: true
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
-        // Try alternative upload method if RLS fails
-        const { data: altUploadData, error: altUploadError } = await supabase.storage
-          .from('documentos')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true,
-            contentType: file.type
-          });
-        
-        if (altUploadError) {
-          throw new Error(`Error al subir archivo: ${altUploadError.message}`);
-        }
+        throw new Error(`Error al subir archivo: ${uploadError.message}`);
       }
 
       const { data: { publicUrl } } = supabase.storage
@@ -164,7 +145,6 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
 
       return { fileName: file.name, url: publicUrl, path: filePath };
     } catch (error) {
-      console.error('File upload error:', error);
       throw error;
     }
   };
@@ -182,16 +162,8 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
       if (file) {
         try {
           archivoData = await uploadFile(file);
-          console.log('File uploaded successfully:', archivoData);
         } catch (uploadError) {
-          console.error('File upload failed:', uploadError);
-          toast({
-            title: "Error al subir archivo",
-            description: "No se pudo subir el archivo. Continuando sin archivo...",
-            variant: "destructive"
-          });
-          // Continue without file instead of stopping
-          archivoData = null;
+          throw new Error(`Error al subir archivo: ${uploadError.message}`);
         }
       }
 
@@ -212,12 +184,8 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         
         if (error) throw error;
         
-        if (result && typeof result === 'object' && 'success' in result) {
-          const resultData = result as any;
-          if (!resultData.success) {
-            throw new Error(resultData.message || 'Error al actualizar el documento');
-          }
-        } else if (!result) {
+        const resultData = result as any;
+        if (!resultData || !resultData.success) {
           throw new Error('Error al actualizar el documento');
         }
         
@@ -232,24 +200,16 @@ export default function DocumentForm({ onSuccess, onCancel, document }: Document
         
         if (error) throw error;
         
-        if (result && typeof result === 'object' && 'success' in result) {
-          const resultData = result as any;
-          if (!resultData.success) {
-            throw new Error(resultData.message || 'Error al crear el documento');
-          }
-        } else if (!result) {
+        const resultData = result as any;
+        if (!resultData || !resultData.success) {
           throw new Error('Error al crear el documento');
         }
         
-        toast({ 
-          title: "Documento creado correctamente",
-          description: archivoData ? "Documento y archivo guardados" : "Documento guardado sin archivo"
-        });
+        toast({ title: "Documento creado correctamente" });
       }
 
       onSuccess();
     } catch (error: any) {
-      console.error('Document submission error:', error);
       toast({
         title: "Error",
         description: error.message,
