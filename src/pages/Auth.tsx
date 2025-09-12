@@ -85,6 +85,12 @@ export default function Auth() {
         timestamp: Date.now()
       }));
 
+      // Establecer sesión de Supabase para RLS
+      await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
       // Redirigir al dashboard
       navigate("/dashboard");
       
