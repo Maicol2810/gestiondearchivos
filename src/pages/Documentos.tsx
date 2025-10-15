@@ -139,15 +139,26 @@ export default function Documentos() {
   };
   const handleDelete = async () => {
     if (!documentToDelete) return;
-    
+
     try {
-      const { error } = await supabase
-        .from('documentos')
-        .delete()
-        .eq('id', documentToDelete.id);
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      const { data: result, error } = await supabase.rpc('delete_document', {
+        document_id: documentToDelete.id,
+        user_id: user.id,
+        user_role: user.rol
+      });
 
       if (error) throw error;
-      
+
+      const resultData = result as any;
+      if (!resultData || !resultData.success) {
+        throw new Error(resultData?.message || 'Error al eliminar el documento');
+      }
+
       toast({ title: "Documento eliminado correctamente" });
       fetchDocumentos();
     } catch (error: any) {
